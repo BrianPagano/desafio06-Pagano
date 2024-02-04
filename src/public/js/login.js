@@ -13,20 +13,27 @@ function submitForm() {
         },
         body: JSON.stringify(formData),
     })
-    .then(response => response.json())
-    .then(responseData => {
-        if (responseData.status === 'success') { // Verifica si el inicio de sesión fue exitoso
-            window.location.href = '/api/products'; // Redirecciona solo si el inicio de sesión fue exitoso
+    .then(response => {
+        if (response.ok) { // Verifica si la respuesta indica una solicitud exitosa
+            return response.json()
         } else {
-            console.log("Inicio de sesión fallido")
-            Swal.fire({
-                icon: "error",
-                title: "Oops...",
-                text: "Usuario o Contraseña incorrecta",
-              });
+            throw new Error('Unauthorized') 
         }
     })
-    .catch(error => console.error('Error:', error))
+    .then(responseData => {
+        // Maneja la respuesta del servidor
+        if (responseData.status === 'success') { // Verifica si el inicio de sesión fue exitoso
+            window.location.href = '/api/products' // Redirecciona solo si el inicio de sesión fue exitoso
+        } 
+    })
+    .catch(error => {
+        console.error('Error:', error)
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Usuario o Contraseña incorrecta",
+        })
+    })
 }
 
 //capturo el span de registrate para cuando hago un click redireccionarlo

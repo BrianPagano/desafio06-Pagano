@@ -7,6 +7,8 @@ const mongoConnect = require('./db')
 const chats = []
 const Messages = require ('./DAO/models/messages.model')
 const session = require('express-session');
+const initializePassport = require('./configs/passport.config')
+const passport = require('passport')
 
 const app = express()
 
@@ -29,6 +31,10 @@ app.use(session ({
 
 // Configura Express para servir archivos estáticos desde la carpeta 'node_modules/bootstrap/dist'
 app.use('/bootstrap', express.static(process.cwd() + '/node_modules/bootstrap/dist'))
+
+initializePassport()
+app.use(passport.initialize())
+app.use(passport.session())
 
 app.engine('handlebars', hbs.engine)
 app.set('views', process.cwd() + '/src/views')

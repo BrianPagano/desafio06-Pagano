@@ -1,34 +1,32 @@
 const { Router } = require('express')
 const Users = require('../DAO/models/user.model')
-const { useValidPassword, createHash } = require('../utils/cryp-password.util')
+const { createHash } = require('../utils/cryp-password.util')
+const passport = require('passport')
 const router = Router()
 
 
-router.post ('/', async (req, res) => {
+router.post ('/', passport.authenticate('login', {failureRedirect: '/auth/fail-login'}) , async (req, res) => {
     try {
-        const {email,password} = req.body
-        const user = await Users.findOne({email})
-        if (!user) {
-            return res.status(401).json({ message: 'unauthorized' })
-        }
-        if (!useValidPassword (user, password)) {
-           return res.status(401).json({ message: 'unauthorized' })
-        }
-
+        const {email} = req.body
         const lowercaseEmail = email.toLowerCase();
 
         req.session.user = {
-            first_name: user.first_name,
-            last_name: user.last_name,
+            first_name: req.user.first_name,
+            last_name: req.user.last_name,
             email: lowercaseEmail,
-            age: user.age,
-            role: user.role,
+            age: req.user.age,
+            role: req.user.role,
         }
         res.json ({status: 'success', message: 'Login Succesfull'})
      } catch (error) {
         console.error ('Error:', error.message)
         res.status(500).json({ error: 'Internal Server Error' })
     }
+})
+
+router.get('/fail-login', (req, res) => {
+    console.log ('Fallo el logueo')
+    res.status().json({status: 'error',  error: 'bad Request' })
 })
 
 router.get('/logout', async (req, res) => {
@@ -57,5 +55,14 @@ router.post('/forgotPassword', async (req, res) => {
     res.status(500).json({ error: error })
     }
 })
+
+router.get('/github', passport.authenticate('github', {scope: ['user: email']}, (req, res) => {}))
+
+router.get('/githubcallback', passport.authenticate('github', {failureRedirect: '/login'}),
+    (req, res) => {
+    req.session.user = req.user
+    res.redirect('/profile')
+    }
+)
 
 module.exports = router

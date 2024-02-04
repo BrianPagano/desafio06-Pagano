@@ -1,26 +1,20 @@
 const { Router } = require('express')
 const Users = require('../DAO/models/user.model')
-const {createHash} = require('../utils/cryp-password.util')
 const router = Router()
+const passport = require ('passport')
 
-router.post ('/', async (req, res) => {
+router.post ('/', passport.authenticate('register', {failureRedirect: '/api/users/fail-Register'}),  async (req, res) => {
     try {
-        const {first_name,last_name,age,email,password} = req.body
-        const newUserInfo = {
-            first_name,
-            last_name,
-            age,
-            email,
-            password: createHash (password),
-        }
-        console.log ('NewUserInfo:', newUserInfo)
-        const user = await Users.create(newUserInfo)
-        res.json ({status: 'success', messae: user })
+        res.status(201).json ({status: 'success', messae: 'Usuario' })
      } catch (error) {
         console.error ('Error:', error.message)
         res.status(500).json({ error: 'Internal Server Error' })
     }
 })
 
+router.get ('/fail-Register', (req, res) => {
+    console.log ('Fallo registro')
+    res.status(400).json({status: 'error',  error: 'bad Request' })
+})
 
 module.exports = router
